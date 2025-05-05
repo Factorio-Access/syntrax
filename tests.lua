@@ -2,6 +2,7 @@ local lu = require("luaunit")
 
 local tests = {
    { "span", require("syntrax.span") },
+   { "lexer", require("syntrax.lexer") },
 }
 
 local runner = lu.LuaUnit.new()

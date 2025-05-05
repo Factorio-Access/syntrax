@@ -1,3 +1,5 @@
+---@diagnostic disable
+---@
 --[[
         luaunit.lua
 

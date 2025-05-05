@@ -28,7 +28,6 @@ local mod = {}
 local Span = {}
 local Span_meta = { __index = Span }
 mod.Span = Span
-mod.new = Span.new
 
 function Span.new(text, start, stop)
    assert(start >= 1)
@@ -41,6 +40,7 @@ function Span.new(text, start, stop)
       stop = stop,
    }, Span_meta)
 end
+mod.new = Span.new
 
 ---@param other syntrax.Span
 ---@nodiscard
