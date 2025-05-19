@@ -13,23 +13,19 @@ We borrow Rust's idea of a token tree.  A token tree is:
 This means that everything after gets a pre-balanced set of brackets and parsing proceeds recursively: any tree which
 isn't a single token has its inner contents partsed, and then moving outward.
 
-A token in our nomenclature is one of the following:
-
-- An identifier: must start with a letter, then at least 1 letter, number, or underscore.  Keywords are identifiers for
-  this step.
-- A chord: lsl;rsr etc. Like an identifier, but with ; allowed in it.
-- A literal: for now only integers.
-- A single non-punctuation non-bracket character
-- Some bracketed tokens, using (, [, or {.
-
 The next phase in the pipeline figures out if the stuff here is meaningful.
 ]]
 local lu = require("luaunit")
 local serpent = require("serpent")
 
+local Errors = require("syntrax.errors")
 local Span = require("syntrax.span")
 
 local mod = {}
+
+local IDENT_PATTERN = "^[%l%u_][%w%d_]*$"
+-- No decimals in syntrax for now.
+local NUMBER_PATTERN = "^%d+$"
 
 -- For the function below, to split a string up into tokens.
 --
@@ -44,9 +40,9 @@ local MUNCHERS = {
    -- A comment not at the end of the file.
    { "^%-%-[^\n]*\n", false },
 
-   -- (possible) identifiers: a set of letters, numbers, _, or ;. Also (possible) numbers: an identifier that happens to
-   -- be all digits.
-   { "^[%w%d;_]+", true },
+   -- (possible) identifiers: a set of letters, numbers, _.  Also (possible) numbers: an identifier that happens to be
+   -- all digits.
+   { "^[%w_]+", true },
 
    -- Anything else goes to a token by itself.  This includes single-letter identifiers, since the caller cannot know
    -- which way we went.
@@ -103,64 +99,136 @@ local function split_at_possibles(text)
 
    return tokens
 end
+mod._split_at_possibles = split_at_possibles
 
-local function strip_tokens_for_test(toks)
-   local out = {}
-   for i = 1, #toks do
-      table.insert(out, toks[i].text)
+---@enum syntrax.TOKEN_TYPE
+mod.TOKEN_TYPE = {
+   L = "l",
+   R = "r",
+   S = "s",
+   IDENTIFIER = "identifier",
+   -- This special token is a token tree, some bracketed text.
+   TREE = "tree",
+   REP = "rep",
+   NUMBER = "number",
+}
+
+---@class syntrax.Token
+---@field type syntrax.TOKEN_TYPE
+---@field value string
+---@field span syntrax.Span
+---@field children syntrax.Token[]? Non-null if token is BRACKET.
+---@field open_bracket_span syntrax.Span?
+---@field close_bracket_span syntrax.Span?
+---@field bracket_type ("[" | "(" | "{")?
+
+local BRACKET_INVERSE = {
+   ["["] = "]",
+   ["{"] = "}",
+   ["("] = ")",
+   ["]"] = "[",
+   [")"] = "(",
+   ["}"] = "{",
+}
+
+--@param untyped_tokens { text: String, span: syntrax.Span }
+---@return syntrax.Token[]?, syntrax.Error?
+local function build_tokens(untyped_tokens)
+   -- A stack whose bottom-most level is the "top" of the program, and each level thereafter is a bracket plus the items
+   -- under that bracket.
+   ---@type { expected_bracket: "["|"("|"{", above: syntrax.Token[], start_span: syntrax.Span }
+   local stack = {}
+
+   local result = {}
+
+   for i = 1, #untyped_tokens do
+      local text = untyped_tokens[i].text
+      local span = untyped_tokens[i].span
+
+      ---@type syntrax.Token
+      local tok = { span = span, type = mod.TOKEN_TYPE.L, value = text }
+
+      if text == "l" then
+         -- Already handled, since we need a default value.
+      elseif text == "r" then
+         tok.type = mod.TOKEN_TYPE.R
+      elseif text == "s" then
+         tok.type = mod.TOKEN_TYPE.S
+      elseif text == "rep" then
+         tok.type = mod.TOKEN_TYPE.REP
+      elseif string.match(text, IDENT_PATTERN) then
+         tok.type = mod.TOKEN_TYPE.IDENTIFIER
+      elseif string.match(text, NUMBER_PATTERN) then
+         tok.type = mod.TOKEN_TYPE.NUMBER
+      elseif text == "[" or text == "{" or text == "(" then
+         -- Bracket open. Our current set of results goes on the stack and we start a new one.
+         table.insert(stack, {
+            span = span,
+            expected_bracket = assert(BRACKET_INVERSE[text]),
+            above = result,
+         })
+         result = {}
+         goto continue
+      elseif text == "]" or text == ")" or text == "}" then
+         -- Popping a bracket.
+         if not next(stack) then
+            return nil,
+               Errors.error_builder(Errors.ERROR_CODE.BRACKET_MISMATCH, "No bracket opens this bracket", span)
+                  :note(string.format("You need a preceeding %s", BRACKET_INVERSE[text]))
+                  :build()
+         end
+
+         local top = stack[#stack]
+         if text ~= top.expected_bracket then
+            local err = Errors.error_builder(
+               Errors.ERROR_CODE.BRACKET_MISMATCH,
+               string.format("Expected %s but found %s", top.expected_bracket, text),
+               span
+            )
+               :note(string.format("To close %s", BRACKET_INVERSE[text]), top.span)
+               :build()
+            return nil, err
+         end
+
+         tok.type = mod.TOKEN_TYPE.TREE
+         tok.children = result
+         tok.open_bracket_span = top.span
+         tok.close_bracket_span = span
+         tok.bracket_type = BRACKET_INVERSE[top.expected_bracket]
+         result = top.above
+         table.remove(stack, #stack)
+      else
+         return nil,
+            Errors.error_builder(Errors.ERROR_CODE.INVALID_TOKEN, string.format("Unrecognized token %s", text), span)
+               :build()
+      end
+
+      table.insert(result, tok)
+
+      ::continue::
    end
 
-   return out
+   if next(stack) then
+      return nil,
+         Errors.error_builder(
+            Errors.ERROR_CODE.BRACKET_NOT_CLOSED,
+            string.format("Bracket %s not closed", BRACKET_INVERSE[stack[#stack].expected_bracket]),
+            stack[#stack].span
+         ):build()
+   end
+
+   return result
 end
+mod._build_tokens = build_tokens
 
--- For tests we will drop the spans and check the tokens. We can do spans later.
-function mod.TestSplittingPossibles()
-   local function check(text, expected_toks)
-      local tok = strip_tokens_for_test(split_at_possibles(text))
-      lu.assertEquals(tok, expected_toks)
-   end
+---@param text string
+---@return syntrax.Token[]?, syntrax.Error?
+function mod.tokenize(text)
+   -- The empty program is valid, but does nothing.
+   if string.match(text, "^%s*$") then return {} end
 
-   -- Some sequences of ascii come out right...
-   check("abc def ghi", { "abc", "def", "ghi" })
-   -- Comments are ignored.
-   check(
-      [[abc
-def -- a comment
-ghi -- a comment at the end of the file]],
-      { "abc", "def", "ghi" }
-   )
-
-   -- ; works
-   check("abc;def ghi", { "abc;def", "ghi" })
-
-   -- We break at punctuation.
-   check("a$b cde", { "a", "$", "b", "cde" })
-
-   -- weird whitespace is fine
-   check(
-      [[abc
-  def
-ghi]],
-      { "abc", "def", "ghi" }
-   )
-
-   -- We break at punctuation.
-   check("a$b cde", { "a", "$", "b", "cde" })
-
-   -- We break at punctuation.
-   check("a$b cde", { "a", "$", "b", "cde" })
-
-   -- We break at punctuation.
-   check("a$b cde", { "a", "$", "b", "cde" })
-
-   -- We break at punctuation.
-   check("a$b cde", { "a", "$", "b", "cde" })
-
-   -- Weird whitespace is okay
-   check("abc \t def \n\t ghi", { "abc", "def", "ghi" })
-
-   -- Adjacent punctuation comes apart.
-   check("$!@#", { "$", "!", "@", "#" })
+   local split = split_at_possibles(text)
+   return build_tokens(split)
 end
 
 return mod

@@ -42,12 +42,17 @@ function ErrorBuilder:note(message, opt_span)
    return self
 end
 
+---@return syntrax.Error
+function ErrorBuilder:build()
+   return self.error
+end
+
 ---@param code syntrax.ERROR_CODE
 ---@param message string
 ---@param span syntrax.Span?
 ---@return syntrax.ErrorBuilder
 function mod.error_builder(code, message, span)
-   local err = { code = code, message = message, span = span }
+   local err = { code = code, message = message, span = span, notes = {} }
    return setmetatable({ error = err }, ErrorBuilder_meta)
 end
 
