@@ -7,8 +7,8 @@ compilation to VM bytecode. Each node carries span information for error reporti
 
 local mod = {}
 
----@enum syntrax.AST_NODE_TYPE
-mod.AST_NODE_TYPE = {
+---@enum syntrax.NODE_TYPE
+mod.NODE_TYPE = {
    -- Basic rail placement commands
    LEFT = "left",
    RIGHT = "right",
@@ -22,7 +22,7 @@ mod.AST_NODE_TYPE = {
 }
 
 ---@class syntrax.ast.Node Base class for all AST nodes
----@field type syntrax.AST_NODE_TYPE
+---@field type syntrax.NODE_TYPE
 ---@field span syntrax.Span
 
 ---@class syntrax.ast.Left: syntrax.ast.Node
@@ -44,7 +44,7 @@ mod.AST_NODE_TYPE = {
 ---@return syntrax.ast.Left
 function mod.left(span)
    return {
-      type = mod.AST_NODE_TYPE.LEFT,
+      type = mod.NODE_TYPE.LEFT,
       span = span,
    }
 end
@@ -53,7 +53,7 @@ end
 ---@return syntrax.ast.Right
 function mod.right(span)
    return {
-      type = mod.AST_NODE_TYPE.RIGHT,
+      type = mod.NODE_TYPE.RIGHT,
       span = span,
    }
 end
@@ -62,7 +62,7 @@ end
 ---@return syntrax.ast.Straight
 function mod.straight(span)
    return {
-      type = mod.AST_NODE_TYPE.STRAIGHT,
+      type = mod.NODE_TYPE.STRAIGHT,
       span = span,
    }
 end
@@ -72,7 +72,7 @@ end
 ---@return syntrax.ast.Sequence
 function mod.sequence(statements, span)
    return {
-      type = mod.AST_NODE_TYPE.SEQUENCE,
+      type = mod.NODE_TYPE.SEQUENCE,
       statements = statements,
       span = span,
    }
@@ -83,7 +83,7 @@ end
 ---@return syntrax.ast.Repetition
 function mod.repetition(body, span)
    return {
-      type = mod.AST_NODE_TYPE.REPETITION,
+      type = mod.NODE_TYPE.REPETITION,
       body = body,
       span = span,
    }

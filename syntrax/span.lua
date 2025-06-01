@@ -45,7 +45,7 @@ mod.new = Span.new
 ---@param other syntrax.Span
 ---@nodiscard
 ---@return syntrax.Span
-function Span:merge(self, other)
+function Span:merge(other)
    local s1, s2 = self.start, other.start
    local e1, e2 = self.stop, other.stop
    return Span.new(self.text, math.min(s1, s2), math.max(e1, e2))
@@ -91,6 +91,7 @@ function Span:get_printable_range()
       self:_resolve()
       hr = self.human_range
    end
+   assert(hr) -- _resolve always sets human_range
    return hr[1], hr[2], hr[3], hr[4]
 end
 
