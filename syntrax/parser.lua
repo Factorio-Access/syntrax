@@ -149,7 +149,7 @@ function parse_statement(state)
          -- Merge span from opening bracket to the number
          local span = tok.open_bracket_span:merge(num_tok.span)
 
-         return Ast.repetition(body, span), nil
+         return Ast.repetition(body, count, span), nil
       else
          -- Just square brackets without repetition - return the sequence
          return body, nil

@@ -45,8 +45,9 @@ function mod.TestRepetitionNode()
       Ast.straight(test_span("s")),
    }, test_span("l s"))
 
-   local rep = Ast.repetition(body, test_span("(l s) rep 5"))
+   local rep = Ast.repetition(body, 5, test_span("(l s) rep 5"))
    lu.assertEquals(rep.type, Ast.NODE_TYPE.REPETITION)
+   lu.assertEquals(rep.count, 5)
    lu.assertEquals(#rep.body.statements, 2)
    lu.assertEquals(rep.body.type, Ast.NODE_TYPE.SEQUENCE)
 end
@@ -63,6 +64,7 @@ function mod.TestComplexAST()
             Ast.right(test_span("r")),
             Ast.straight(test_span("s")),
          }, test_span("r r s")),
+         4,
          test_span("(r r s) rep 4")
       ),
       Ast.straight(test_span("s")),

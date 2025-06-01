@@ -79,12 +79,14 @@ function mod.sequence(statements, span)
 end
 
 ---@param body syntrax.ast.Sequence
+---@param count number
 ---@param span syntrax.Span
 ---@return syntrax.ast.Repetition
-function mod.repetition(body, span)
+function mod.repetition(body, count, span)
    return {
       type = mod.NODE_TYPE.REPETITION,
       body = body,
+      count = count,
       span = span,
    }
 end
