@@ -5,8 +5,11 @@ Syntrax is a domain-specific language for specifying Factorio train layouts as p
 
 ## Language Basics
 - Basic commands: `l` (left curve), `r` (right curve), `s` (straight)
-- Repetition: `(pattern) rep n` - repeats pattern n times
-- Example: `(l l s) rep 8` creates a complete circle with 8 repetitions of left-left-straight
+- Sequences: `[commands]` - groups commands, can be empty
+- Repetition: `[pattern] rep n` - repeats pattern n times
+- Empty programs are valid (useful as a no-op or placeholder)
+- Example: `[l l s] rep 8` creates a complete circle with 8 repetitions of left-left-straight
+- Note: Only square brackets `[]` are allowed for sequences (parentheses and curly braces reserved for future use)
 
 ## Technical Constraints
 - Must use Lua 5.2 (Factorio's Lua version)
@@ -87,7 +90,7 @@ The lexer produces a hierarchical structure where bracketed expressions are pre-
 The "minimal subset" currently consists of just l/r/s commands. For example:
 ```
 -- Full syntax
-(l s r) rep 3
+[l s r] rep 3
 -- Minimal subset (after expansion)
 l s r l s r l s r
 ```
