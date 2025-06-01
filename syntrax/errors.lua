@@ -17,6 +17,10 @@ mod.ERROR_CODE = {
 
    -- You tried to close a bracket, but it was opened by a different kind, e.g. (].
    BRACKET_MISMATCH = "bracket_mismatch",
+
+   -- Parser errors
+   UNEXPECTED_TOKEN = "unexpected_token",
+   EXPECTED_NUMBER = "expected_number",
 }
 
 ---@class syntrax.Error

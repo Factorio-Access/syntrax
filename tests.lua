@@ -4,6 +4,7 @@ local tests = {
    { "span", require("syntrax.span") },
    { "lexer", require("syntrax.tests.lexer") },
    { "ast", require("syntrax.tests.ast") },
+   { "parser", require("syntrax.tests.parser") },
 }
 
 local runner = lu.LuaUnit.new()
