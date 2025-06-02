@@ -111,12 +111,54 @@ The language exposes only bounded repetition constructs, ensuring programs alway
 - Abstract rail types to be replaced with concrete values at runtime
 - Multiple rail types exist based on runtime circumstances
 
+#### 5. AST (`syntrax/ast.lua`)
+- **Purpose**: Abstract syntax tree representation
+- **Node Types**:
+  - `LEFT`, `RIGHT`, `STRAIGHT` - basic rail placement commands
+  - `SEQUENCE` - ordered list of statements
+  - `REPETITION` - repeat a body N times (includes count field)
+- **Design**: Uses factory functions to create nodes with proper type fields
+
+#### 6. Parser (`syntrax/parser.lua`)
+- **Purpose**: Converts token trees to AST
+- **Implementation**: Recursive descent parser leveraging pre-parsed bracket structure
+- **Key Features**:
+  - Only square brackets `[]` allowed for sequences (others reserved)
+  - Empty sequences and empty programs are valid
+  - Proper span tracking and merging throughout
+- **Error Codes Added**:
+  - `UNEXPECTED_TOKEN` - token not valid in current context
+  - `EXPECTED_NUMBER` - repetition count must be numeric
+
+#### 7. VM (`syntrax/vm.lua`)
+- **Purpose**: Virtual machine that executes bytecode to produce rail graphs
+- **Architecture**:
+  - General-purpose registers holding values
+  - Bytecode array with program counter
+  - Output graph of rails with parent references
+  - Hand direction state (0-15, where 0=north, 4=east, 8=south, 12=west)
+- **Bytecode Instructions**:
+  - `LEFT`, `RIGHT`, `STRAIGHT` - place rails and update hand direction
+  - `MOV` - move values into registers
+  - `MATH` - arithmetic operations (+, -, *, /)
+  - `CMP` - comparisons (<, <=, ==, >=, >, !=) storing 0/1 result
+  - `JNZ` - jump if not zero (relative offsets)
+- **Output Format**: Array of rails with parent index, kind, and direction tracking
+
+## Development Tools
+
+### Debugging Scripts
+- `print-ast.lua` - Pretty-prints AST in YAML-like format
+- `print-vm.lua` - Demonstrates VM execution with sample bytecode
+- `check-lua.sh` - Runs lua-language-server for type checking
+
 ## Next Steps
-1. **Parser**: Convert token trees into an abstract syntax tree (current priority)
-2. **VM Bytecode Generation**: Transform AST to VM instructions
+1. **Compiler**: Generate VM bytecode from AST
+2. **Integration**: Connect parser → compiler → VM pipeline
 3. **Extended Features**: Variables, flips, stacks, railrefs as described in the proposal
 
 ## Development Notes
 - Test-driven development using LuaUnit
+- Proper Lua class style with metatables
+- Type annotations for lua-language-server
 - Separate from Factorio runtime for easier testing
-- The `COMPILATION_STATE` enum in compilation_result.lua is a remnant and can be removed

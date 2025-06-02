@@ -43,7 +43,7 @@ end
 ---@return boolean
 function ParserState:check_token(expected_type)
    local tok = self:current_token()
-   return tok and tok.type == expected_type
+   return tok ~= nil and tok.type == expected_type
 end
 
 ---@param expected_type syntrax.TOKEN_TYPE
