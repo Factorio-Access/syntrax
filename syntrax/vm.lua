@@ -264,27 +264,20 @@ function VM:execute_instruction()
    if instr.kind == mod.BYTECODE_KIND.LEFT then
       self:place_rail(mod.RAIL_KIND.LEFT)
       self.pc = self.pc + 1
-
    elseif instr.kind == mod.BYTECODE_KIND.RIGHT then
       self:place_rail(mod.RAIL_KIND.RIGHT)
       self.pc = self.pc + 1
-
    elseif instr.kind == mod.BYTECODE_KIND.STRAIGHT then
       self:place_rail(mod.RAIL_KIND.STRAIGHT)
       self.pc = self.pc + 1
-
    elseif instr.kind == mod.BYTECODE_KIND.JNZ then
       self:execute_jnz(instr)
-
    elseif instr.kind == mod.BYTECODE_KIND.MATH then
       self:execute_math(instr)
-
    elseif instr.kind == mod.BYTECODE_KIND.CMP then
       self:execute_cmp(instr)
-
    elseif instr.kind == mod.BYTECODE_KIND.MOV then
       self:execute_mov(instr)
-
    else
       error("Unknown bytecode kind: " .. tostring(instr.kind))
    end

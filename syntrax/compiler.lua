@@ -46,24 +46,19 @@ end
 function Compiler:compile_node(node)
    if node.type == Ast.NODE_TYPE.LEFT then
       self:emit(Vm.bytecode(Vm.BYTECODE_KIND.LEFT))
-      
    elseif node.type == Ast.NODE_TYPE.RIGHT then
       self:emit(Vm.bytecode(Vm.BYTECODE_KIND.RIGHT))
-      
    elseif node.type == Ast.NODE_TYPE.STRAIGHT then
       self:emit(Vm.bytecode(Vm.BYTECODE_KIND.STRAIGHT))
-      
    elseif node.type == Ast.NODE_TYPE.SEQUENCE then
       -- Simply compile each statement in order
       ---@cast node syntrax.ast.Sequence
       for _, stmt in ipairs(node.statements) do
          self:compile_node(stmt)
       end
-      
    elseif node.type == Ast.NODE_TYPE.REPETITION then
       ---@cast node syntrax.ast.Repetition
       self:compile_repetition(node)
-      
    else
       error("Unknown node type: " .. tostring(node.type))
    end
