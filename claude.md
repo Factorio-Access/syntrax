@@ -5,10 +5,12 @@ Syntrax is a domain-specific language for specifying Factorio train layouts as p
 
 ## Language Basics
 - Basic commands: `l` (left curve), `r` (right curve), `s` (straight)
+- Rail stack commands: `rpush` (save position), `rpop` (restore position), `reset` (return to initial)
 - Sequences: `[commands]` - groups commands, can be empty
 - Repetition: `[pattern] rep n` - repeats pattern n times
 - Empty programs are valid (useful as a no-op or placeholder)
 - Example: `[l l s] rep 8` creates a complete circle with 8 repetitions of left-left-straight
+- Fork example: `rpush l r s reset s s s reset r s l` creates a 3-way split
 - Note: Only square brackets `[]` are allowed for sequences (parentheses and curly braces reserved for future use)
 
 ## Technical Constraints
@@ -34,6 +36,7 @@ The pipeline follows a traditional compiler architecture:
 - **Token Types**:
   - `L`, `R`, `S` - directional commands
   - `REP` - repetition keyword
+  - `RPUSH`, `RPOP`, `RESET` - rail stack commands
   - `IDENTIFIER` - generic identifiers
   - `NUMBER` - numeric literals
   - `TREE` - bracketed token groups
@@ -56,6 +59,7 @@ The pipeline follows a traditional compiler architecture:
   - `INVALID_TOKEN` - unrecognized token
   - `BRACKET_NOT_CLOSED` - unclosed bracket at EOF
   - `BRACKET_MISMATCH` - mismatched bracket types (e.g., `(]`)
+  - `RUNTIME_ERROR` - runtime errors (e.g., rpop on empty stack)
 
 #### 4. Compilation Result (`syntrax/compilation_result.lua`)
 - **Purpose**: Manages compilation pipeline state
@@ -115,6 +119,7 @@ The language exposes only bounded repetition constructs, ensuring programs alway
 - **Purpose**: Abstract syntax tree representation
 - **Node Types**:
   - `LEFT`, `RIGHT`, `STRAIGHT` - basic rail placement commands
+  - `RPUSH`, `RPOP`, `RESET` - rail stack manipulation commands
   - `SEQUENCE` - ordered list of statements
   - `REPETITION` - repeat a body N times (includes count field)
 - **Design**: Uses factory functions to create nodes with proper type fields
@@ -145,13 +150,19 @@ The language exposes only bounded repetition constructs, ensuring programs alway
   - Bytecode array with program counter
   - Output graph of rails with parent references
   - Hand direction state using direction constants from directions module
+  - Rail stack for saving/restoring position and direction
+  - Initial rail and direction support for fork operations
 - **Bytecode Instructions**:
   - `LEFT`, `RIGHT`, `STRAIGHT` - place rails and update hand direction
+  - `RPUSH` - push current rail index and hand direction to stack
+  - `RPOP` - pop rail index and hand direction from stack (error if empty)
+  - `RESET` - clear stack and return to initial rail/direction
   - `MOV` - move values into registers
   - `MATH` - arithmetic operations (+, -, *, /)
   - `CMP` - comparisons (<, <=, ==, >=, >, !=) storing 0/1 result
   - `JNZ` - jump if not zero (relative offsets)
 - **Output Format**: Array of rails with parent index, kind, and direction tracking
+- **Runtime Errors**: Bytecode includes span information for error reporting
 
 #### 9. Compiler (`syntrax/compiler.lua`)
 - **Purpose**: Transforms AST into VM bytecode
@@ -207,9 +218,10 @@ The compiler uses a simple incrementing allocator for registers. Each repetition
 
 ### Error Philosophy
 - Parse errors include source location via spans
-- Runtime errors are minimal (only uninitialized registers currently)
+- Runtime errors include source location via bytecode spans
+- Runtime errors: uninitialized registers, rpop on empty stack
 - All valid programs terminate due to bounded repetition
-- Future: Add source mapping through compilation for better runtime errors
+- Bytecode carries span information for precise error reporting
 
 ### Testing Strategy
 - Unit tests for each module in isolation

@@ -33,7 +33,11 @@ function Compiler:allocate_register()
 end
 
 ---@param bc syntrax.vm.Bytecode
-function Compiler:emit(bc)
+---@param span syntrax.Span?
+function Compiler:emit(bc, span)
+   if span then
+      bc.span = span
+   end
    table.insert(self.bytecode, bc)
 end
 
@@ -45,11 +49,17 @@ end
 ---@param node syntrax.ast.Node
 function Compiler:compile_node(node)
    if node.type == Ast.NODE_TYPE.LEFT then
-      self:emit(Vm.bytecode(Vm.BYTECODE_KIND.LEFT))
+      self:emit(Vm.bytecode(Vm.BYTECODE_KIND.LEFT), node.span)
    elseif node.type == Ast.NODE_TYPE.RIGHT then
-      self:emit(Vm.bytecode(Vm.BYTECODE_KIND.RIGHT))
+      self:emit(Vm.bytecode(Vm.BYTECODE_KIND.RIGHT), node.span)
    elseif node.type == Ast.NODE_TYPE.STRAIGHT then
-      self:emit(Vm.bytecode(Vm.BYTECODE_KIND.STRAIGHT))
+      self:emit(Vm.bytecode(Vm.BYTECODE_KIND.STRAIGHT), node.span)
+   elseif node.type == Ast.NODE_TYPE.RPUSH then
+      self:emit(Vm.bytecode(Vm.BYTECODE_KIND.RPUSH), node.span)
+   elseif node.type == Ast.NODE_TYPE.RPOP then
+      self:emit(Vm.bytecode(Vm.BYTECODE_KIND.RPOP), node.span)
+   elseif node.type == Ast.NODE_TYPE.RESET then
+      self:emit(Vm.bytecode(Vm.BYTECODE_KIND.RESET), node.span)
    elseif node.type == Ast.NODE_TYPE.SEQUENCE then
       -- Simply compile each statement in order
       ---@cast node syntrax.ast.Sequence

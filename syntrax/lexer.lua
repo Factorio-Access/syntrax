@@ -111,6 +111,9 @@ mod.TOKEN_TYPE = {
    TREE = "tree",
    REP = "rep",
    NUMBER = "number",
+   RPUSH = "rpush",
+   RPOP = "rpop",
+   RESET = "reset",
 }
 
 ---@class syntrax.Token
@@ -156,6 +159,12 @@ local function build_tokens(untyped_tokens)
          tok.type = mod.TOKEN_TYPE.S
       elseif text == "rep" then
          tok.type = mod.TOKEN_TYPE.REP
+      elseif text == "rpush" then
+         tok.type = mod.TOKEN_TYPE.RPUSH
+      elseif text == "rpop" then
+         tok.type = mod.TOKEN_TYPE.RPOP
+      elseif text == "reset" then
+         tok.type = mod.TOKEN_TYPE.RESET
       elseif string.match(text, IDENT_PATTERN) then
          tok.type = mod.TOKEN_TYPE.IDENTIFIER
       elseif string.match(text, NUMBER_PATTERN) then

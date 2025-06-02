@@ -3304,8 +3304,9 @@ function M.LuaUnit:unregisterSuite()
       end
    end
 
-   if instanceIdx ~= nil then table.remove(M.LuaUnit.instances, instanceIdx)       -- print('Unregister done')
-end
+   if instanceIdx ~= nil then
+      table.remove(M.LuaUnit.instances, instanceIdx) -- print('Unregister done')
+   end
 end
 
 function M.LuaUnit:initFromArguments(...)

@@ -143,6 +143,12 @@ local function print_ast(node, indent)
       print(prefix .. "right")
    elseif node.type == Ast.NODE_TYPE.STRAIGHT then
       print(prefix .. "straight")
+   elseif node.type == Ast.NODE_TYPE.RPUSH then
+      print(prefix .. "rpush")
+   elseif node.type == Ast.NODE_TYPE.RPOP then
+      print(prefix .. "rpop")
+   elseif node.type == Ast.NODE_TYPE.RESET then
+      print(prefix .. "reset")
    elseif node.type == Ast.NODE_TYPE.REPETITION then
       print(prefix .. "repetition:")
       print(prefix .. "  count: " .. node.count)

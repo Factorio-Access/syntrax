@@ -5,6 +5,7 @@ Executes bytecode to produce a graph of rail placements.
 ]]
 
 local Directions = require("syntrax.directions")
+local Errors = require("syntrax.errors")
 
 local mod = {}
 
@@ -30,6 +31,9 @@ mod.BYTECODE_KIND = {
    MATH = "math",
    CMP = "cmp",
    MOV = "mov",
+   RPUSH = "rpush",
+   RPOP = "rpop",
+   RESET = "reset",
 }
 
 ---@enum syntrax.vm.MathOp
@@ -65,12 +69,17 @@ mod.RAIL_KIND = {
 ---@class syntrax.vm.Bytecode
 ---@field kind syntrax.vm.BytecodeKind
 ---@field arguments syntrax.vm.Operand[]
+---@field span syntrax.Span? Optional span for error reporting
 
 ---@class syntrax.vm.Rail
 ---@field parent number? Index of parent rail (nil for first rail)
 ---@field kind syntrax.vm.RailKind
 ---@field incoming_direction number Direction hand was facing when placed
 ---@field outgoing_direction number Direction hand faces after placement
+
+---@class syntrax.vm.RailStackEntry
+---@field rail_index number Index of the rail
+---@field hand_direction number Hand direction when rail was pushed
 
 ---@class syntrax.vm.State
 ---@field registers table<number, syntrax.vm.Operand> Array of registers
@@ -79,14 +88,20 @@ mod.RAIL_KIND = {
 ---@field pc number Program counter
 ---@field hand_direction number Current hand direction (0-15)
 ---@field parent_rail number? Index of last placed rail
+---@field rail_stack syntrax.vm.RailStackEntry[] Stack of saved rail positions
+---@field initial_rail number? Initial rail index
+---@field initial_hand_direction number Initial hand direction
 ---@field resolve_operand fun(self: syntrax.vm.State, operand: syntrax.vm.Operand): syntrax.vm.Operand
 ---@field place_rail fun(self: syntrax.vm.State, kind: syntrax.vm.RailKind)
 ---@field execute_jnz fun(self: syntrax.vm.State, instr: syntrax.vm.Bytecode)
 ---@field execute_math fun(self: syntrax.vm.State, instr: syntrax.vm.Bytecode)
 ---@field execute_cmp fun(self: syntrax.vm.State, instr: syntrax.vm.Bytecode)
 ---@field execute_mov fun(self: syntrax.vm.State, instr: syntrax.vm.Bytecode)
----@field execute_instruction fun(self: syntrax.vm.State): boolean
----@field run fun(self: syntrax.vm.State): syntrax.vm.Rail[]
+---@field execute_rpush fun(self: syntrax.vm.State, instr: syntrax.vm.Bytecode): nil, syntrax.Error?
+---@field execute_rpop fun(self: syntrax.vm.State, instr: syntrax.vm.Bytecode): nil, syntrax.Error?
+---@field execute_reset fun(self: syntrax.vm.State, instr: syntrax.vm.Bytecode): nil, syntrax.Error?
+---@field execute_instruction fun(self: syntrax.vm.State): boolean, syntrax.Error?
+---@field run fun(self: syntrax.vm.State, initial_rail: number?, initial_hand_direction: number?): syntrax.vm.Rail[]?, syntrax.Error?
 
 local VM = {}
 local VM_meta = { __index = VM }
@@ -100,6 +115,9 @@ function mod.new()
       pc = 1,
       hand_direction = Directions.NORTH, -- Start facing north
       parent_rail = nil,
+      rail_stack = {},
+      initial_rail = nil,
+      initial_hand_direction = Directions.NORTH,
    }, VM_meta)
 end
 
@@ -280,7 +298,49 @@ function VM:execute_mov(instr)
    self.pc = self.pc + 1
 end
 
----@return boolean True if execution should continue
+---@param instr syntrax.vm.Bytecode
+---@return nil, syntrax.Error?
+function VM:execute_rpush(instr)
+   -- Push current rail index and hand direction to the stack
+   local entry = {
+      rail_index = self.parent_rail or self.initial_rail,
+      hand_direction = self.hand_direction,
+   }
+   table.insert(self.rail_stack, entry)
+   return nil, nil
+end
+
+---@param instr syntrax.vm.Bytecode
+---@return nil, syntrax.Error?
+function VM:execute_rpop(instr)
+   if #self.rail_stack == 0 then
+      -- Runtime error - empty stack
+      return nil, Errors.error_builder(
+         Errors.ERROR_CODE.RUNTIME_ERROR,
+         "Cannot rpop from empty rail stack",
+         instr.span
+      ):build()
+   end
+   
+   -- Pop the last entry
+   local entry = table.remove(self.rail_stack)
+   self.parent_rail = entry.rail_index
+   self.hand_direction = entry.hand_direction
+   return nil, nil
+end
+
+---@param instr syntrax.vm.Bytecode
+---@return nil, syntrax.Error?
+function VM:execute_reset(instr)
+   -- Clear the rail stack
+   self.rail_stack = {}
+   -- Return to initial position
+   self.parent_rail = self.initial_rail
+   self.hand_direction = self.initial_hand_direction
+   return nil, nil
+end
+
+---@return boolean, syntrax.Error? True if execution should continue, error if runtime error
 function VM:execute_instruction()
    if self.pc < 1 or self.pc > #self.bytecode then
       return false -- Program complete
@@ -305,6 +365,18 @@ function VM:execute_instruction()
       self:execute_cmp(instr)
    elseif instr.kind == mod.BYTECODE_KIND.MOV then
       self:execute_mov(instr)
+   elseif instr.kind == mod.BYTECODE_KIND.RPUSH then
+      local _, err = self:execute_rpush(instr)
+      if err then return false, err end
+      self.pc = self.pc + 1
+   elseif instr.kind == mod.BYTECODE_KIND.RPOP then
+      local _, err = self:execute_rpop(instr)
+      if err then return false, err end
+      self.pc = self.pc + 1
+   elseif instr.kind == mod.BYTECODE_KIND.RESET then
+      local _, err = self:execute_reset(instr)
+      if err then return false, err end
+      self.pc = self.pc + 1
    else
       error("Unknown bytecode kind: " .. tostring(instr.kind))
    end
@@ -312,11 +384,32 @@ function VM:execute_instruction()
    return true
 end
 
-function VM:run()
-   while self:execute_instruction() do
-      -- Continue execution
+---@param initial_rail number?
+---@param initial_hand_direction number?
+---@return syntrax.vm.Rail[]?, syntrax.Error?
+function VM:run(initial_rail, initial_hand_direction)
+   -- Set initial values if provided
+   if initial_rail then
+      self.initial_rail = initial_rail
+      self.parent_rail = initial_rail
    end
-   return self.rails
+   if initial_hand_direction then
+      self.initial_hand_direction = initial_hand_direction
+      self.hand_direction = initial_hand_direction
+   end
+   
+   -- Execute instructions until done or error
+   while true do
+      local continue, err = self:execute_instruction()
+      if err then
+         return nil, err
+      end
+      if not continue then
+         break
+      end
+   end
+   
+   return self.rails, nil
 end
 
 -- Pretty printing support

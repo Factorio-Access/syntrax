@@ -9,6 +9,7 @@ Syntrax is a domain-specific language for describing Factorio train rail layouts
 ### Tokens
 
 - **Rail Commands**: `l` (left), `r` (right), `s` (straight)
+- **Rail Stack Commands**: `rpush` (save position), `rpop` (restore position), `reset` (return to initial)
 - **Keywords**: `rep` (repetition)
 - **Numbers**: Decimal integers (e.g., `1`, `42`, `100`)
 - **Brackets**: `[` `]` (sequences only; parentheses and braces reserved)
@@ -23,7 +24,7 @@ No comment syntax is currently defined.
 ```
 program     = statement*
 statement   = command | sequence | repetition
-command     = "l" | "r" | "s"
+command     = "l" | "r" | "s" | "rpush" | "rpop" | "reset"
 sequence    = "[" statement* "]"
 repetition  = sequence "rep" number
 number      = [0-9]+
@@ -39,6 +40,15 @@ Each command places a rail and updates the "hand" direction:
 - `s` - Place straight rail, hand direction unchanged
 
 The hand starts facing north (direction 0).
+
+### Rail Stack Commands
+
+These commands manipulate a stack of saved positions:
+- `rpush` - Push current rail index and hand direction onto the stack
+- `rpop` - Pop rail index and hand direction from the stack (error if empty)
+- `reset` - Clear the stack and return to the initial rail and hand direction
+
+The rail stack is global and not scoped to sequences or loops.
 
 ### Sequences
 
@@ -87,7 +97,9 @@ Each unit represents 22.5 degrees (1/16 of a circle).
 
 The implementation compiles to bytecode executed by a stack-based VM:
 - **Registers**: Unlimited array for loop counters and future features
-- **Instructions**: LEFT, RIGHT, STRAIGHT, MOV, MATH, CMP, JNZ
+- **Instructions**: LEFT, RIGHT, STRAIGHT, RPUSH, RPOP, RESET, MOV, MATH, CMP, JNZ
+- **Rail Stack**: Stack of (rail_index, hand_direction) pairs for fork support
+- **Initial State**: Can be provided with initial rail and direction
 - **Execution**: Sequential with jump instructions for loops
 
 ## Examples
@@ -100,6 +112,24 @@ The implementation compiles to bytecode executed by a stack-based VM:
 ### Square
 ```
 [[s s s s] [r r r r]] rep 4   -- Four straight sides with 90° turns
+```
+
+### 3-way Fork
+```
+rpush
+l r s reset      -- First branch
+s s s reset      -- Middle branch  
+r s l            -- Last branch
+```
+
+### Station Loop
+```
+s s rpush [
+  rpop rpush           -- Return and save position
+  l l [s] rep 10       -- Station siding
+  rpop                 -- Return to mainline
+  s s s rpush          -- Advance for next station
+] rep 5                -- 5 stations
 ```
 
 ### Empty Program
@@ -116,7 +146,8 @@ The implementation compiles to bytecode executed by a stack-based VM:
   - Invalid repetition count (zero or negative)
 
 - **Execution Errors**:
-  - Currently none (all valid programs terminate)
+  - `rpop` on empty rail stack
+  - Uninitialized register access (internal VM error)
 
 ## Future Extensions
 

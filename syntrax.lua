@@ -19,6 +19,16 @@ mod.VERSION = "0.1.0-dev"
 ---@return Rail[]? rails Array of rail placements, or nil on error
 ---@return syntrax.Error? error Error object if compilation failed
 function mod.execute(source)
+   return mod.execute_with_initial(source, nil, nil)
+end
+
+---Execute Syntrax source code with initial rail and direction
+---@param source string The Syntrax source code
+---@param initial_rail number? Initial rail index (1-based)
+---@param initial_hand_direction number? Initial hand direction (0-15)
+---@return Rail[]? rails Array of rail placements, or nil on error
+---@return syntrax.Error? error Error object if compilation or execution failed
+function mod.execute_with_initial(source, initial_rail, initial_hand_direction)
    -- Parse
    local ast, parse_err = Parser.parse(source)
    if parse_err then
@@ -34,7 +44,11 @@ function mod.execute(source)
    -- Execute
    local vm = Vm.new()
    vm.bytecode = bytecode
-   local rails = vm:run()
+   local rails, runtime_err = vm:run(initial_rail, initial_hand_direction)
+   
+   if runtime_err then
+      return nil, runtime_err
+   end
    
    return rails, nil
 end

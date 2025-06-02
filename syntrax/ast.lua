@@ -19,6 +19,11 @@ mod.NODE_TYPE = {
 
    -- Sequence of commands - implicit grouping, also used at top level
    SEQUENCE = "sequence",
+   
+   -- Rail stack manipulation
+   RPUSH = "rpush",
+   RPOP = "rpop",
+   RESET = "reset",
 }
 
 ---@class syntrax.ast.Node Base class for all AST nodes
@@ -37,6 +42,12 @@ mod.NODE_TYPE = {
 ---@class syntrax.ast.Repetition: syntrax.ast.Node
 ---@field body syntrax.ast.Sequence The statement(s) to repeat
 ---@field count number How many times to repeat
+
+---@class syntrax.ast.Rpush: syntrax.ast.Node
+
+---@class syntrax.ast.Rpop: syntrax.ast.Node
+
+---@class syntrax.ast.Reset: syntrax.ast.Node
 
 -- Factory functions for creating AST nodes
 
@@ -87,6 +98,33 @@ function mod.repetition(body, count, span)
       type = mod.NODE_TYPE.REPETITION,
       body = body,
       count = count,
+      span = span,
+   }
+end
+
+---@param span syntrax.Span
+---@return syntrax.ast.Rpush
+function mod.rpush(span)
+   return {
+      type = mod.NODE_TYPE.RPUSH,
+      span = span,
+   }
+end
+
+---@param span syntrax.Span
+---@return syntrax.ast.Rpop
+function mod.rpop(span)
+   return {
+      type = mod.NODE_TYPE.RPOP,
+      span = span,
+   }
+end
+
+---@param span syntrax.Span
+---@return syntrax.ast.Reset
+function mod.reset(span)
+   return {
+      type = mod.NODE_TYPE.RESET,
       span = span,
    }
 end

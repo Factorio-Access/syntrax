@@ -21,6 +21,9 @@ mod.ERROR_CODE = {
    -- Parser errors
    UNEXPECTED_TOKEN = "unexpected_token",
    EXPECTED_NUMBER = "expected_number",
+   
+   -- Runtime errors
+   RUNTIME_ERROR = "runtime_error",
 }
 
 ---@class syntrax.Error
