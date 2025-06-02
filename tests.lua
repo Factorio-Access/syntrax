@@ -8,6 +8,7 @@ local tests = {
    { "directions", require("syntrax.tests.directions") },
    { "vm", require("syntrax.tests.vm") },
    { "compiler", require("syntrax.tests.compiler") },
+   { "syntrax", require("syntrax.tests.syntrax") },
 }
 
 local runner = lu.LuaUnit.new()

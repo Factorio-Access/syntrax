@@ -190,3 +190,83 @@ The language exposes only bounded repetition constructs, ensuring programs alway
 - Proper Lua class style with metatables
 - Type annotations for lua-language-server
 - Separate from Factorio runtime for easier testing
+
+## Key Implementation Details
+
+### Operand System
+The VM uses a typed operand system with four kinds:
+- `VALUE` - Numeric literals with type field
+- `REGISTER` - Register references  
+- `MATH_OP` - Arithmetic operations (+, -, *, /)
+- `CMP_OP` - Comparison operations (<, <=, ==, >=, >, !=)
+
+This prevents type confusion and ensures operations are properly distinguished from values.
+
+### Register Allocation
+The compiler uses a simple incrementing allocator for registers. Each repetition gets its own counter register, allowing proper nesting. Future features (variables, expressions) will extend this system.
+
+### Error Philosophy
+- Parse errors include source location via spans
+- Runtime errors are minimal (only uninitialized registers currently)
+- All valid programs terminate due to bounded repetition
+- Future: Add source mapping through compilation for better runtime errors
+
+### Testing Strategy
+- Unit tests for each module in isolation
+- Integration tests via compiler tests
+- End-to-end tests using the CLI
+- Property: All test files use consistent helpers (assertParseSuccess, etc.)
+
+## Common Patterns
+
+### Adding a New Bytecode Instruction
+1. Add to `BYTECODE_KIND` enum in vm.lua
+2. Add execution handler method in VM (e.g., `execute_foo`)
+3. Update `execute_instruction` to dispatch to handler
+4. Add format support in `format_bytecode` if needed
+5. Update compiler to emit the instruction
+6. Add tests for both VM execution and compilation
+
+### Adding a New AST Node Type
+1. Add to `NODE_TYPE` enum in ast.lua
+2. Define the node class with proper fields
+3. Add factory function in ast.lua
+4. Update parser to recognize and create nodes
+5. Update compiler's `compile_node` to handle it
+6. Update AST pretty-printers
+7. Add tests at each layer
+
+### Module Dependencies
+```
+directions.lua (standalone)
+span.lua (standalone)
+errors.lua → span.lua
+lexer.lua → span.lua, errors.lua
+ast.lua → span.lua
+parser.lua → lexer.lua, ast.lua, errors.lua, span.lua
+vm.lua → directions.lua
+compiler.lua → ast.lua, vm.lua
+```
+
+## Future Considerations
+
+### Variables
+- Will need symbol table in compiler
+- VM will need variable storage (probably more registers)
+- Parser will need identifier support (already lexed)
+
+### Control Flow
+- Conditionals will need new bytecode (likely JMPZ)
+- May want labeled jumps instead of relative offsets
+- Consider stack-based approach for complex expressions
+
+### Rail References
+- VM output needs stable rail IDs
+- Compiler needs to track rail placement for back-references
+- May need "ghost" rails for forward references
+
+### Optimizations
+- Dead code elimination (empty sequences)
+- Constant folding (nested repetitions with constants)
+- Register reuse after loop completion
+- Peephole optimizations (consecutive same-direction turns)

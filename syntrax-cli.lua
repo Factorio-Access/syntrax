@@ -1,6 +1,9 @@
 #!/usr/bin/env lua
 --[[
-Syntrax CLI - Command line interface for the Syntrax language
+Syntrax CLI - Development and debugging tool for the Syntrax language
+
+This is NOT part of the public API. It's a development utility that provides
+access to internal modules for debugging and testing purposes.
 
 Usage:
   syntrax-cli.lua [options] [file]
@@ -20,6 +23,10 @@ Examples:
   syntrax-cli.lua -o all -c "l r s"     # Show all stages
 ]]
 
+-- For the public API
+local Syntrax = require("syntrax")
+
+-- For debugging features, we need internal modules
 local Parser = require("syntrax.parser")
 local Compiler = require("syntrax.compiler")
 local Vm = require("syntrax.vm")
