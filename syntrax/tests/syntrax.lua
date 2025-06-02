@@ -1,54 +1,30 @@
 local lu = require("luaunit")
-
 local Syntrax = require("syntrax")
+local helpers = require("syntrax.tests.helpers")
 
 local mod = {}
 
 function mod.TestExecuteSimple()
-   local rails, err = Syntrax.execute("l r s")
-   lu.assertNil(err)
-   lu.assertNotNil(rails)
-   assert(rails)
-   lu.assertEquals(#rails, 3)
-   lu.assertEquals(rails[1].kind, "left")
-   lu.assertEquals(rails[2].kind, "right")
-   lu.assertEquals(rails[3].kind, "straight")
+   local rails = helpers.assert_compilation_succeeds("l r s")
+   helpers.assert_rail_sequence(rails, {"left", "right", "straight"})
 end
 
 function mod.TestExecuteWithRepetition()
-   local rails, err = Syntrax.execute("[l] rep 4")
-   lu.assertNil(err)
-   lu.assertNotNil(rails)
-   assert(rails)
-   lu.assertEquals(#rails, 4)
-   for i = 1, 4 do
-      lu.assertEquals(rails[i].kind, "left")
-   end
+   local rails = helpers.assert_compilation_succeeds("[l] rep 4")
+   helpers.assert_rail_sequence(rails, {"left", "left", "left", "left"})
 end
 
 function mod.TestExecuteEmpty()
-   local rails, err = Syntrax.execute("")
-   lu.assertNil(err)
-   lu.assertNotNil(rails)
-   assert(rails)
+   local rails = helpers.assert_compilation_succeeds("")
    lu.assertEquals(#rails, 0)
 end
 
 function mod.TestExecuteError()
-   local rails, err = Syntrax.execute("l rep 3")
-   lu.assertNil(rails)
-   lu.assertNotNil(err)
-   assert(err)
-   lu.assertEquals(err.code, "unexpected_token")
-   lu.assertStrContains(err.message, "Unexpected token 'rep'")
+   helpers.assert_compilation_fails("l rep 3", "unexpected_token", "Unexpected token 'rep'")
 end
 
 function mod.TestExecuteInvalidToken()
-   local rails, err = Syntrax.execute("x y z")
-   lu.assertNil(rails)
-   lu.assertNotNil(err)
-   assert(err)
-   lu.assertEquals(err.code, "unexpected_token")
+   helpers.assert_compilation_fails("x y z", "unexpected_token")
 end
 
 function mod.TestVersion()
@@ -57,18 +33,16 @@ function mod.TestVersion()
 end
 
 function mod.TestRailStructure()
-   local rails, err = Syntrax.execute("l r")
-   lu.assertNil(err)
-   assert(rails)
+   local rails = helpers.assert_compilation_succeeds("l r")
    lu.assertEquals(#rails, 2)
    
    -- First rail has no parent
-   lu.assertNil(rails[1].parent)
+   helpers.assert_rail_connects_to(rails, 1, nil)
    lu.assertNotNil(rails[1].incoming_direction)
    lu.assertNotNil(rails[1].outgoing_direction)
    
    -- Second rail's parent is the first
-   lu.assertEquals(rails[2].parent, 1)
+   helpers.assert_rail_connects_to(rails, 2, 1)
    lu.assertEquals(rails[2].incoming_direction, rails[1].outgoing_direction)
 end
 

@@ -9,6 +9,7 @@ local tests = {
    { "vm", require("syntrax.tests.vm") },
    { "compiler", require("syntrax.tests.compiler") },
    { "syntrax", require("syntrax.tests.syntrax") },
+   { "syntax", require("syntrax.tests.syntax") },
    { "rail-stack", require("syntrax.tests.rail-stack") },
 }
 
