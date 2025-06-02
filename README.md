@@ -29,8 +29,12 @@ local Syntrax = require("syntrax")
 -- Compile and execute Syntrax code
 local rails, error = Syntrax.execute("l r s")
 
+-- With initial rail and direction (for fork support)
+local rails, error = Syntrax.execute("rpush l r reset s", 5, 4)
+-- Where: 5 = initial rail index, 4 = east direction
+
 if error then
-    -- Handle compilation error
+    -- Handle compilation or runtime error
     print("Error: " .. error.message)
 else
     -- Process rail placements
@@ -46,6 +50,11 @@ end
 The `execute` function returns:
 - `rails` - Array of rail placement instructions (or nil on error)
 - `error` - Error object with code, message, and source location (or nil on success)
+
+Parameters:
+- `source` - The Syntrax source code (required)
+- `initial_rail` - Initial rail index for fork support (optional, defaults to nil)
+- `initial_hand_direction` - Initial direction 0-15 (optional, defaults to 0=north)
 
 Each rail in the array contains:
 - `kind` - "left", "right", or "straight"

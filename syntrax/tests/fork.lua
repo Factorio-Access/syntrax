@@ -43,7 +43,7 @@ end
 
 function TestForkSupport:test_reset_with_initial()
    -- Reset with explicit initial rail
-   local rails, err = Syntrax.execute_with_initial("l r reset s", 5, Directions.EAST)
+   local rails, err = Syntrax.execute("l r reset s", 5, Directions.EAST)
    lu.assertNil(err)
    lu.assertNotNil(rails)
    lu.assertEquals(#rails, 3)
@@ -94,7 +94,7 @@ end
 
 function TestForkSupport:test_direction_preservation()
    -- rpush/rpop should preserve direction
-   local rails, err = Syntrax.execute_with_initial("l l rpush r r rpop s", 1, Directions.NORTH)
+   local rails, err = Syntrax.execute("l l rpush r r rpop s", 1, Directions.NORTH)
    lu.assertNil(err)
    lu.assertNotNil(rails)
    
@@ -114,7 +114,7 @@ l r s reset
 s s s reset
 r s l
 ]]
-   local rails, err = Syntrax.execute_with_initial(code, 1, Directions.EAST)
+   local rails, err = Syntrax.execute(code, 1, Directions.EAST)
    lu.assertNil(err)
    lu.assertNotNil(rails)
    lu.assertEquals(#rails, 9)
@@ -127,7 +127,7 @@ end
 
 function TestForkSupport:test_initial_rail_rpush()
    -- Can rpush the initial rail
-   local rails, err = Syntrax.execute_with_initial("rpush s s rpop", 10, Directions.SOUTH)
+   local rails, err = Syntrax.execute("rpush s s rpop", 10, Directions.SOUTH)
    lu.assertNil(err)
    lu.assertNotNil(rails)
    lu.assertEquals(#rails, 2)
