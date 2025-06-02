@@ -130,13 +130,21 @@ The language exposes only bounded repetition constructs, ensuring programs alway
   - `UNEXPECTED_TOKEN` - token not valid in current context
   - `EXPECTED_NUMBER` - repetition count must be numeric
 
-#### 7. VM (`syntrax/vm.lua`)
+#### 7. Directions (`syntrax/directions.lua`)
+- **Purpose**: Direction constants and utilities matching Factorio's direction system
+- **Constants**: 16 directions from NORTH (0) to NORTH_NORTHWEST (15)
+- **Utilities**:
+  - `to_name` - Convert numeric direction to short name (e.g., 0 → "N")
+  - `rotate` - Rotate direction by given amount (positive = clockwise)
+  - `opposite` - Get the opposite direction (e.g., NORTH → SOUTH)
+
+#### 8. VM (`syntrax/vm.lua`)
 - **Purpose**: Virtual machine that executes bytecode to produce rail graphs
 - **Architecture**:
   - General-purpose registers holding values
   - Bytecode array with program counter
   - Output graph of rails with parent references
-  - Hand direction state (0-15, where 0=north, 4=east, 8=south, 12=west)
+  - Hand direction state using direction constants from directions module
 - **Bytecode Instructions**:
   - `LEFT`, `RIGHT`, `STRAIGHT` - place rails and update hand direction
   - `MOV` - move values into registers

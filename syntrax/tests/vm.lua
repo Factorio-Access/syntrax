@@ -2,6 +2,7 @@ local lu = require("luaunit")
 local serpent = require("serpent")
 
 local Vm = require("syntrax.vm")
+local Directions = require("syntrax.directions")
 
 local mod = {}
 
@@ -37,20 +38,20 @@ function mod.TestBasicRailPlacement()
    -- First rail: left turn from north
    lu.assertEquals(rails[1].kind, Vm.RAIL_KIND.LEFT)
    lu.assertNil(rails[1].parent)
-   lu.assertEquals(rails[1].incoming_direction, 0) -- north
-   lu.assertEquals(rails[1].outgoing_direction, 15) -- north-northwest
+   lu.assertEquals(rails[1].incoming_direction, Directions.NORTH)
+   lu.assertEquals(rails[1].outgoing_direction, Directions.NORTH_NORTHWEST)
    
    -- Second rail: straight
    lu.assertEquals(rails[2].kind, Vm.RAIL_KIND.STRAIGHT)
    lu.assertEquals(rails[2].parent, 1)
-   lu.assertEquals(rails[2].incoming_direction, 15)
-   lu.assertEquals(rails[2].outgoing_direction, 15)
+   lu.assertEquals(rails[2].incoming_direction, Directions.NORTH_NORTHWEST)
+   lu.assertEquals(rails[2].outgoing_direction, Directions.NORTH_NORTHWEST)
    
    -- Third rail: right turn
    lu.assertEquals(rails[3].kind, Vm.RAIL_KIND.RIGHT)
    lu.assertEquals(rails[3].parent, 2)
-   lu.assertEquals(rails[3].incoming_direction, 15)
-   lu.assertEquals(rails[3].outgoing_direction, 0) -- back to north
+   lu.assertEquals(rails[3].incoming_direction, Directions.NORTH_NORTHWEST)
+   lu.assertEquals(rails[3].outgoing_direction, Directions.NORTH) -- back to north
 end
 
 function mod.TestMOVInstruction()
@@ -183,8 +184,8 @@ function mod.TestCompleteCircle()
    
    lu.assertEquals(#rails, 16)
    
-   -- After 16 left turns, we should be back to north (0)
-   lu.assertEquals(rails[16].outgoing_direction, 0)
+   -- After 16 left turns, we should be back to north
+   lu.assertEquals(rails[16].outgoing_direction, Directions.NORTH)
 end
 
 function mod.TestFormatOperand()
@@ -234,23 +235,23 @@ function mod.TestErrorHandling()
 end
 
 function mod.TestFormatDirection()
-   -- Test all 16 directions
-   lu.assertEquals(Vm.format_direction(0), "N")
-   lu.assertEquals(Vm.format_direction(1), "NNE")
-   lu.assertEquals(Vm.format_direction(2), "NE")
-   lu.assertEquals(Vm.format_direction(3), "ENE")
-   lu.assertEquals(Vm.format_direction(4), "E")
-   lu.assertEquals(Vm.format_direction(5), "ESE")
-   lu.assertEquals(Vm.format_direction(6), "SE")
-   lu.assertEquals(Vm.format_direction(7), "SSE")
-   lu.assertEquals(Vm.format_direction(8), "S")
-   lu.assertEquals(Vm.format_direction(9), "SSW")
-   lu.assertEquals(Vm.format_direction(10), "SW")
-   lu.assertEquals(Vm.format_direction(11), "WSW")
-   lu.assertEquals(Vm.format_direction(12), "W")
-   lu.assertEquals(Vm.format_direction(13), "WNW")
-   lu.assertEquals(Vm.format_direction(14), "NW")
-   lu.assertEquals(Vm.format_direction(15), "NNW")
+   -- Test all 16 directions using constants
+   lu.assertEquals(Vm.format_direction(Directions.NORTH), "N")
+   lu.assertEquals(Vm.format_direction(Directions.NORTH_NORTHEAST), "NNE")
+   lu.assertEquals(Vm.format_direction(Directions.NORTHEAST), "NE")
+   lu.assertEquals(Vm.format_direction(Directions.EAST_NORTHEAST), "ENE")
+   lu.assertEquals(Vm.format_direction(Directions.EAST), "E")
+   lu.assertEquals(Vm.format_direction(Directions.EAST_SOUTHEAST), "ESE")
+   lu.assertEquals(Vm.format_direction(Directions.SOUTHEAST), "SE")
+   lu.assertEquals(Vm.format_direction(Directions.SOUTH_SOUTHEAST), "SSE")
+   lu.assertEquals(Vm.format_direction(Directions.SOUTH), "S")
+   lu.assertEquals(Vm.format_direction(Directions.SOUTH_SOUTHWEST), "SSW")
+   lu.assertEquals(Vm.format_direction(Directions.SOUTHWEST), "SW")
+   lu.assertEquals(Vm.format_direction(Directions.WEST_SOUTHWEST), "WSW")
+   lu.assertEquals(Vm.format_direction(Directions.WEST), "W")
+   lu.assertEquals(Vm.format_direction(Directions.WEST_NORTHWEST), "WNW")
+   lu.assertEquals(Vm.format_direction(Directions.NORTHWEST), "NW")
+   lu.assertEquals(Vm.format_direction(Directions.NORTH_NORTHWEST), "NNW")
    
    -- Test invalid direction
    lu.assertEquals(Vm.format_direction(16), "16")

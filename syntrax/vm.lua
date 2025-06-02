@@ -4,6 +4,8 @@ Virtual Machine for Syntrax language.
 Executes bytecode to produce a graph of rail placements.
 ]]
 
+local Directions = require("syntrax.directions")
+
 local mod = {}
 
 ---@enum syntrax.vm.OperandKind
@@ -94,7 +96,7 @@ function mod.new()
       bytecode = {},
       rails = {},
       pc = 1,
-      hand_direction = 0, -- Start facing north
+      hand_direction = Directions.NORTH, -- Start facing north
       parent_rail = nil,
    }, VM_meta)
 end
@@ -149,9 +151,9 @@ function VM:place_rail(kind)
 
    -- Update direction based on rail type
    if kind == mod.RAIL_KIND.LEFT then
-      outgoing = (incoming - 1) % 16
+      outgoing = Directions.rotate(incoming, -1)
    elseif kind == mod.RAIL_KIND.RIGHT then
-      outgoing = (incoming + 1) % 16
+      outgoing = Directions.rotate(incoming, 1)
    -- STRAIGHT doesn't change direction
    end
 
@@ -342,28 +344,7 @@ function mod.format_bytecode(bc, index, labels)
    return table.concat(parts, " ")
 end
 
--- Direction constants for more readable output
-mod.DIRECTION_NAMES = {
-   [0] = "N",
-   [1] = "NNE", 
-   [2] = "NE",
-   [3] = "ENE",
-   [4] = "E",
-   [5] = "ESE",
-   [6] = "SE", 
-   [7] = "SSE",
-   [8] = "S",
-   [9] = "SSW",
-   [10] = "SW",
-   [11] = "WSW", 
-   [12] = "W",
-   [13] = "WNW",
-   [14] = "NW",
-   [15] = "NNW",
-}
-
-function mod.format_direction(dir)
-   return mod.DIRECTION_NAMES[dir] or tostring(dir)
-end
+-- Re-export direction formatting for convenience
+mod.format_direction = Directions.to_name
 
 return mod
