@@ -153,17 +153,37 @@ The language exposes only bounded repetition constructs, ensuring programs alway
   - `JNZ` - jump if not zero (relative offsets)
 - **Output Format**: Array of rails with parent index, kind, and direction tracking
 
+#### 9. Compiler (`syntrax/compiler.lua`)
+- **Purpose**: Transforms AST into VM bytecode
+- **Key Features**:
+  - Register allocation for loop counters
+  - Generates efficient bytecode for repetitions using JNZ loops
+  - Handles nested repetitions with separate registers
+  - Pretty-prints bytecode listings with labels for debugging
+- **Compilation Strategy**:
+  - Simple nodes (LEFT, RIGHT, STRAIGHT) → direct bytecode emission
+  - Sequences → recursive compilation of statements
+  - Repetitions → MOV/loop/MATH/JNZ pattern with allocated registers
+
 ## Development Tools
+
+### CLI Interface
+- `syntrax-cli.lua` - Main command line interface with full feature support
+  - Run files or inline code with `-c`
+  - Output formats: rails (default), bytecode, ast, or all
+  - Quiet mode with `-q` for scripting
+  - Proper error handling and help
 
 ### Debugging Scripts
 - `print-ast.lua` - Pretty-prints AST in YAML-like format
 - `print-vm.lua` - Demonstrates VM execution with sample bytecode
+- `compile-and-run.lua` - Simple pipeline demo (use syntrax-cli.lua instead)
 - `check-lua.sh` - Runs lua-language-server for type checking
 
 ## Next Steps
-1. **Compiler**: Generate VM bytecode from AST
-2. **Integration**: Connect parser → compiler → VM pipeline
-3. **Extended Features**: Variables, flips, stacks, railrefs as described in the proposal
+1. **Extended Features**: Variables, flips, stacks, railrefs as described in the proposal
+2. **Optimization**: Potential bytecode optimizations (constant folding, register reuse)
+3. **Error Handling**: Add source location tracking through compilation for better runtime errors
 
 ## Development Notes
 - Test-driven development using LuaUnit
