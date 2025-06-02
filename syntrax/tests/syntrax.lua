@@ -8,6 +8,7 @@ function mod.TestExecuteSimple()
    local rails, err = Syntrax.execute("l r s")
    lu.assertNil(err)
    lu.assertNotNil(rails)
+   assert(rails)
    lu.assertEquals(#rails, 3)
    lu.assertEquals(rails[1].kind, "left")
    lu.assertEquals(rails[2].kind, "right")
@@ -18,6 +19,7 @@ function mod.TestExecuteWithRepetition()
    local rails, err = Syntrax.execute("[l] rep 4")
    lu.assertNil(err)
    lu.assertNotNil(rails)
+   assert(rails)
    lu.assertEquals(#rails, 4)
    for i = 1, 4 do
       lu.assertEquals(rails[i].kind, "left")
@@ -28,6 +30,7 @@ function mod.TestExecuteEmpty()
    local rails, err = Syntrax.execute("")
    lu.assertNil(err)
    lu.assertNotNil(rails)
+   assert(rails)
    lu.assertEquals(#rails, 0)
 end
 
@@ -35,6 +38,7 @@ function mod.TestExecuteError()
    local rails, err = Syntrax.execute("l rep 3")
    lu.assertNil(rails)
    lu.assertNotNil(err)
+   assert(err)
    lu.assertEquals(err.code, "unexpected_token")
    lu.assertStrContains(err.message, "Unexpected token 'rep'")
 end
@@ -43,6 +47,7 @@ function mod.TestExecuteInvalidToken()
    local rails, err = Syntrax.execute("x y z")
    lu.assertNil(rails)
    lu.assertNotNil(err)
+   assert(err)
    lu.assertEquals(err.code, "unexpected_token")
 end
 
@@ -54,6 +59,7 @@ end
 function mod.TestRailStructure()
    local rails, err = Syntrax.execute("l r")
    lu.assertNil(err)
+   assert(rails)
    lu.assertEquals(#rails, 2)
    
    -- First rail has no parent

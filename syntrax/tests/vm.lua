@@ -32,6 +32,7 @@ function mod.TestBasicRailPlacement()
    }
    
    local rails = vm:run()
+   assert(rails)
    
    lu.assertEquals(#rails, 3)
    
@@ -136,6 +137,7 @@ function mod.TestJNZInstruction()
    }
    
    local rails = vm:run()
+   assert(rails)
    
    -- Only one rail should be placed (the right)
    lu.assertEquals(#rails, 1)
@@ -157,6 +159,7 @@ function mod.TestJNZLoop()
    }
    
    local rails = vm:run()
+   assert(rails)
    
    -- Should place 3 left rails
    lu.assertEquals(#rails, 3)
@@ -181,6 +184,7 @@ function mod.TestCompleteCircle()
    }
    
    local rails = vm:run()
+   assert(rails)
    
    lu.assertEquals(#rails, 16)
    

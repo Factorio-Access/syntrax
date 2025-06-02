@@ -56,7 +56,14 @@ end
 
 -- Execute the program
 print("\nExecuting...")
-local rails = vm:run()
+local rails, err = vm:run()
+
+if err then
+   print("\nRuntime error: " .. err.message)
+   return
+end
+
+assert(rails)
 
 -- Print the output
 print(string.format("\nGenerated %d rails:", #rails))

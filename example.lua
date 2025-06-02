@@ -20,6 +20,7 @@ rails, err = Syntrax.execute("[l l s] rep 8")
 if err then
    print("Error: " .. err.message)
 else
+   assert(rails)
    print(string.format("Generated %d rails for a complete circle", #rails))
    
    -- Check if we ended up back at north
@@ -40,6 +41,7 @@ rails, err = Syntrax.execute("rpush l r s reset s s", 10, Directions.EAST)
 if err then
    print("Error: " .. err.message)
 else
+   assert(rails)
    print(string.format("Generated %d rails from initial rail 10", #rails))
    -- First rail should connect to rail 10
    if #rails > 0 then

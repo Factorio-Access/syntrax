@@ -53,7 +53,14 @@ print(Compiler.format_bytecode_listing(bytecode))
 print("\n=== Executing ===")
 local vm = Vm.new()
 vm.bytecode = bytecode
-local rails = vm:run()
+local rails, err = vm:run()
+
+if err then
+   print("\nRuntime error: " .. err.message)
+   return
+end
+
+assert(rails)
 
 -- Print results
 print(string.format("\nGenerated %d rails:", #rails))

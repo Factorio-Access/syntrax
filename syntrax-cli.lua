@@ -238,7 +238,18 @@ local function main(args)
    -- Execute
    local vm = Vm.new()
    vm.bytecode = bytecode
-   local rails = vm:run()
+   local rails, runtime_err = vm:run()
+   
+   if runtime_err then
+      io.stderr:write("Runtime error: " .. runtime_err.message .. "\n")
+      if runtime_err.span then
+         local l1, c1 = runtime_err.span:get_printable_range()
+         io.stderr:write(string.format("  at line %d, column %d\n", l1, c1))
+      end
+      os.exit(1)
+   end
+   
+   assert(rails)
    
    -- Show rails output
    if options.output == "rails" or options.output == "all" then
