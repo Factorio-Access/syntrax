@@ -78,13 +78,13 @@ function mod.TestMATHInstructions()
       -- r2 = 5
       bc(Vm.BYTECODE_KIND.MOV, reg(2), val(5)),
       -- r3 = r1 + r2
-      bc(Vm.BYTECODE_KIND.MATH, reg(3), reg(1), reg(2), val(Vm.MATH_OP.ADD)),
+      bc(Vm.BYTECODE_KIND.MATH, reg(3), reg(1), reg(2), Vm.math_op(Vm.MATH_OP.ADD)),
       -- r4 = r1 - r2
-      bc(Vm.BYTECODE_KIND.MATH, reg(4), reg(1), reg(2), val(Vm.MATH_OP.SUB)),
+      bc(Vm.BYTECODE_KIND.MATH, reg(4), reg(1), reg(2), Vm.math_op(Vm.MATH_OP.SUB)),
       -- r5 = r1 * r2
-      bc(Vm.BYTECODE_KIND.MATH, reg(5), reg(1), reg(2), val(Vm.MATH_OP.MUL)),
+      bc(Vm.BYTECODE_KIND.MATH, reg(5), reg(1), reg(2), Vm.math_op(Vm.MATH_OP.MUL)),
       -- r6 = r1 / r2
-      bc(Vm.BYTECODE_KIND.MATH, reg(6), reg(1), reg(2), val(Vm.MATH_OP.DIV)),
+      bc(Vm.BYTECODE_KIND.MATH, reg(6), reg(1), reg(2), Vm.math_op(Vm.MATH_OP.DIV)),
    }
    
    vm:run()
@@ -104,13 +104,13 @@ function mod.TestCMPInstructions()
       -- r2 = 5
       bc(Vm.BYTECODE_KIND.MOV, reg(2), val(5)),
       -- r3 = (r1 < r2)
-      bc(Vm.BYTECODE_KIND.CMP, reg(3), reg(1), reg(2), val(Vm.CMP_OP.LT)),
+      bc(Vm.BYTECODE_KIND.CMP, reg(3), reg(1), reg(2), Vm.cmp_op(Vm.CMP_OP.LT)),
       -- r4 = (r1 > r2)
-      bc(Vm.BYTECODE_KIND.CMP, reg(4), reg(1), reg(2), val(Vm.CMP_OP.GT)),
+      bc(Vm.BYTECODE_KIND.CMP, reg(4), reg(1), reg(2), Vm.cmp_op(Vm.CMP_OP.GT)),
       -- r5 = (r1 == r1)
-      bc(Vm.BYTECODE_KIND.CMP, reg(5), reg(1), reg(1), val(Vm.CMP_OP.EQ)),
+      bc(Vm.BYTECODE_KIND.CMP, reg(5), reg(1), reg(1), Vm.cmp_op(Vm.CMP_OP.EQ)),
       -- r6 = (r1 != r2)
-      bc(Vm.BYTECODE_KIND.CMP, reg(6), reg(1), reg(2), val(Vm.CMP_OP.NE)),
+      bc(Vm.BYTECODE_KIND.CMP, reg(6), reg(1), reg(2), Vm.cmp_op(Vm.CMP_OP.NE)),
    }
    
    vm:run()
@@ -151,7 +151,7 @@ function mod.TestJNZLoop()
       -- loop start (index 2)
       bc(Vm.BYTECODE_KIND.LEFT),
       -- r1 = r1 - 1
-      bc(Vm.BYTECODE_KIND.MATH, reg(1), reg(1), val(1), val(Vm.MATH_OP.SUB)),
+      bc(Vm.BYTECODE_KIND.MATH, reg(1), reg(1), val(1), Vm.math_op(Vm.MATH_OP.SUB)),
       -- JNZ r1, -2 (jump back to loop start)
       bc(Vm.BYTECODE_KIND.JNZ, reg(1), val(-2)),
    }
@@ -175,7 +175,7 @@ function mod.TestCompleteCircle()
       -- loop: place left
       bc(Vm.BYTECODE_KIND.LEFT),
       -- r1 = r1 - 1
-      bc(Vm.BYTECODE_KIND.MATH, reg(1), reg(1), val(1), val(Vm.MATH_OP.SUB)),
+      bc(Vm.BYTECODE_KIND.MATH, reg(1), reg(1), val(1), Vm.math_op(Vm.MATH_OP.SUB)),
       -- JNZ r1, -2
       bc(Vm.BYTECODE_KIND.JNZ, reg(1), val(-2)),
    }
@@ -203,7 +203,7 @@ function mod.TestFormatBytecode()
    lu.assertEquals(Vm.format_bytecode(mov, 1), "MOV r(1) v(42)")
    
    -- Test MATH instruction
-   local math = bc(Vm.BYTECODE_KIND.MATH, reg(1), reg(2), val(3), val(Vm.MATH_OP.ADD))
+   local math = bc(Vm.BYTECODE_KIND.MATH, reg(1), reg(2), val(3), Vm.math_op(Vm.MATH_OP.ADD))
    lu.assertEquals(Vm.format_bytecode(math, 1), "MATH r(1) r(2) v(3) op(+)")
    
    -- Test with labels
@@ -220,7 +220,7 @@ function mod.TestErrorHandling()
    
    -- Test uninitialized register
    vm.bytecode = {
-      bc(Vm.BYTECODE_KIND.MATH, reg(1), reg(2), val(1), val(Vm.MATH_OP.ADD)),
+      bc(Vm.BYTECODE_KIND.MATH, reg(1), reg(2), val(1), Vm.math_op(Vm.MATH_OP.ADD)),
    }
    
    lu.assertError(function() vm:run() end, "Register r2 not initialized")
@@ -228,7 +228,7 @@ function mod.TestErrorHandling()
    -- Test invalid destination for MATH
    vm = Vm.new()
    vm.bytecode = {
-      bc(Vm.BYTECODE_KIND.MATH, val(1), val(2), val(3), val(Vm.MATH_OP.ADD)),
+      bc(Vm.BYTECODE_KIND.MATH, val(1), val(2), val(3), Vm.math_op(Vm.MATH_OP.ADD)),
    }
    
    lu.assertError(function() vm:run() end, "MATH destination must be a register")

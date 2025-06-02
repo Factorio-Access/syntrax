@@ -94,7 +94,7 @@ function Compiler:compile_repetition(node)
       Vm.register(counter_reg),
       Vm.register(counter_reg),
       Vm.value(Vm.VALUE_TYPE.NUMBER, 1),
-      Vm.value(Vm.VALUE_TYPE.NUMBER, Vm.MATH_OP.SUB)
+      Vm.math_op(Vm.MATH_OP.SUB)
    ))
    
    -- Jump back if counter is not zero

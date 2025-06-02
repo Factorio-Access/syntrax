@@ -12,6 +12,8 @@ local mod = {}
 mod.OPERAND_KIND = {
    VALUE = "value",
    REGISTER = "register",
+   MATH_OP = "math_op",
+   CMP_OP = "cmp_op",
 }
 
 ---@enum syntrax.vm.ValueType
@@ -58,7 +60,7 @@ mod.RAIL_KIND = {
 ---@class syntrax.vm.Operand
 ---@field kind syntrax.vm.OperandKind
 ---@field type syntrax.vm.ValueType? Only present for values
----@field argument number Register index or literal value
+---@field argument number|string Register index, literal value, or operation string
 
 ---@class syntrax.vm.Bytecode
 ---@field kind syntrax.vm.BytecodeKind
@@ -117,6 +119,20 @@ function mod.register(index)
    }
 end
 
+function mod.math_op(op)
+   return {
+      kind = mod.OPERAND_KIND.MATH_OP,
+      argument = op,
+   }
+end
+
+function mod.cmp_op(op)
+   return {
+      kind = mod.OPERAND_KIND.CMP_OP,
+      argument = op,
+   }
+end
+
 -- Helper to create bytecode
 function mod.bytecode(kind, ...)
    return {
@@ -139,6 +155,9 @@ function VM:resolve_operand(operand)
          error("Register contains another register reference")
       end
       return value
+   elseif operand.kind == mod.OPERAND_KIND.MATH_OP or operand.kind == mod.OPERAND_KIND.CMP_OP then
+      -- Operations are not resolved, they're used directly
+      return operand
    else
       error("Unknown operand kind: " .. tostring(operand.kind))
    end
@@ -191,6 +210,10 @@ function VM:execute_math(instr)
    local left = self:resolve_operand(instr.arguments[2])
    local right = self:resolve_operand(instr.arguments[3])
    local op = instr.arguments[4]
+   
+   if op.kind ~= mod.OPERAND_KIND.MATH_OP then
+      error("MATH operation must be a MATH_OP operand")
+   end
 
    local result
    if op.argument == mod.MATH_OP.ADD then
@@ -219,6 +242,10 @@ function VM:execute_cmp(instr)
    local val1 = self:resolve_operand(instr.arguments[2])
    local val2 = self:resolve_operand(instr.arguments[3])
    local op = instr.arguments[4]
+   
+   if op.kind ~= mod.OPERAND_KIND.CMP_OP then
+      error("CMP operation must be a CMP_OP operand")
+   end
 
    local result
    if op.argument == mod.CMP_OP.LT then
@@ -298,6 +325,10 @@ function mod.format_operand(operand)
       return string.format("v(%s)", tostring(operand.argument))
    elseif operand.kind == mod.OPERAND_KIND.REGISTER then
       return string.format("r(%d)", operand.argument)
+   elseif operand.kind == mod.OPERAND_KIND.MATH_OP then
+      return string.format("op(%s)", operand.argument)
+   elseif operand.kind == mod.OPERAND_KIND.CMP_OP then
+      return string.format("op(%s)", operand.argument)
    else
       return "?"
    end
@@ -316,12 +347,8 @@ function mod.format_bytecode(bc, index, labels)
    
    -- Add arguments
    for i, arg in ipairs(bc.arguments) do
-      -- Special handling for operators
-      if (bc.kind == mod.BYTECODE_KIND.MATH and i == 4) or
-         (bc.kind == mod.BYTECODE_KIND.CMP and i == 4) then
-         table.insert(parts, string.format("op(%s)", arg.argument))
       -- Special handling for jump targets
-      elseif bc.kind == mod.BYTECODE_KIND.JNZ and i == 2 and arg.kind == mod.OPERAND_KIND.VALUE then
+      if bc.kind == mod.BYTECODE_KIND.JNZ and i == 2 and arg.kind == mod.OPERAND_KIND.VALUE then
          -- Try to find label for target
          local target = index + arg.argument
          if labels and labels[target] then

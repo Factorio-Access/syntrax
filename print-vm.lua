@@ -37,7 +37,7 @@ vm.bytecode = {
    bc(Vm.BYTECODE_KIND.RIGHT),
    
    -- r1 = r1 - 1
-   bc(Vm.BYTECODE_KIND.MATH, reg(1), reg(1), val(1), val(Vm.MATH_OP.SUB)),
+   bc(Vm.BYTECODE_KIND.MATH, reg(1), reg(1), val(1), Vm.math_op(Vm.MATH_OP.SUB)),
    
    -- If r1 != 0, jump back to start of loop (offset -9)
    bc(Vm.BYTECODE_KIND.JNZ, reg(1), val(-9)),
