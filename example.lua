@@ -22,13 +22,11 @@ if err then
 else
    assert(rails)
    print(string.format("Generated %d rails for a complete circle", #rails))
-   
+
    -- Check if we ended up back at north
    if #rails > 0 then
       local last_direction = rails[#rails].outgoing_direction
-      if last_direction == 0 then
-         print("Success: Ended facing north again!")
-      end
+      if last_direction == 0 then print("Success: Ended facing north again!") end
    end
 end
 
@@ -44,9 +42,7 @@ else
    assert(rails)
    print(string.format("Generated %d rails from initial rail 10", #rails))
    -- First rail should connect to rail 10
-   if #rails > 0 then
-      print(string.format("First rail parent: %s", rails[1].parent or "nil"))
-   end
+   if #rails > 0 then print(string.format("First rail parent: %s", rails[1].parent or "nil")) end
 end
 
 print()

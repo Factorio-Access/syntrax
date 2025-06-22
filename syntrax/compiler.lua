@@ -35,9 +35,7 @@ end
 ---@param bc syntrax.vm.Bytecode
 ---@param span syntrax.Span?
 function Compiler:emit(bc, span)
-   if span then
-      bc.span = span
-   end
+   if span then bc.span = span end
    table.insert(self.bytecode, bc)
 end
 
@@ -82,40 +80,34 @@ function Compiler:compile_repetition(node)
    -- <body>
    -- counter = counter - 1
    -- JNZ counter, offset_to_loop_start
-   
+
    local counter_reg = self:allocate_register()
-   
+
    -- Initialize counter
-   self:emit(Vm.bytecode(
-      Vm.BYTECODE_KIND.MOV,
-      Vm.register(counter_reg),
-      Vm.value(Vm.VALUE_TYPE.NUMBER, node.count)
-   ))
-   
+   self:emit(Vm.bytecode(Vm.BYTECODE_KIND.MOV, Vm.register(counter_reg), Vm.value(Vm.VALUE_TYPE.NUMBER, node.count)))
+
    -- Remember where the loop starts
    local loop_start = self:current_position()
-   
+
    -- Compile the body
    self:compile_node(node.body)
-   
+
    -- Decrement counter
-   self:emit(Vm.bytecode(
-      Vm.BYTECODE_KIND.MATH,
-      Vm.register(counter_reg),
-      Vm.register(counter_reg),
-      Vm.value(Vm.VALUE_TYPE.NUMBER, 1),
-      Vm.math_op(Vm.MATH_OP.SUB)
-   ))
-   
+   self:emit(
+      Vm.bytecode(
+         Vm.BYTECODE_KIND.MATH,
+         Vm.register(counter_reg),
+         Vm.register(counter_reg),
+         Vm.value(Vm.VALUE_TYPE.NUMBER, 1),
+         Vm.math_op(Vm.MATH_OP.SUB)
+      )
+   )
+
    -- Jump back if counter is not zero
    local current_pos = self:current_position()
    local jump_offset = loop_start - current_pos
-   
-   self:emit(Vm.bytecode(
-      Vm.BYTECODE_KIND.JNZ,
-      Vm.register(counter_reg),
-      Vm.value(Vm.VALUE_TYPE.NUMBER, jump_offset)
-   ))
+
+   self:emit(Vm.bytecode(Vm.BYTECODE_KIND.JNZ, Vm.register(counter_reg), Vm.value(Vm.VALUE_TYPE.NUMBER, jump_offset)))
 end
 
 ---@param ast syntrax.ast.Node
@@ -130,7 +122,7 @@ end
 function mod.format_bytecode_listing(bytecode)
    local lines = {}
    local labels = {}
-   
+
    -- First pass: identify jump targets and create labels
    for i, bc in ipairs(bytecode) do
       if bc.kind == Vm.BYTECODE_KIND.JNZ then
@@ -143,12 +135,12 @@ function mod.format_bytecode_listing(bytecode)
          end
       end
    end
-   
+
    -- Second pass: format bytecode with labels
    for i, bc in ipairs(bytecode) do
       table.insert(lines, string.format("%3d: %s", i, Vm.format_bytecode(bc, i, labels)))
    end
-   
+
    return table.concat(lines, "\n")
 end
 

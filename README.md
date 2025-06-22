@@ -1,12 +1,17 @@
 # Syntrax
 
-A Lua library for the Factorio Access mod that compiles text-based rail layout descriptions into placement instructions. This library enables blind players to plan train networks using a simple text syntax instead of the visual rail planner.
+IMPORTANT: this has been merged into [The Main Factorio Access Repo](https://github.com/factorio-access/FactorioAccess).
+The initial plan was to develop it separately, but that didn't work out for a variety of reasons. A Lua library for the
+Factorio Access mod that compiles text-based rail layout descriptions into placement instructions. This library enables
+blind players to plan train networks using a simple text syntax instead of the visual rail planner.
 
-**Status: Work in Progress** - This is an early development version. The API and language features are subject to change.
+**Status: Work in Progress** - This is an early development version. The API and language features are subject to
+change.
 
 ## Overview
 
-Syntrax is designed to be integrated into the Factorio Access mod. It provides a compiler that transforms text descriptions of rail layouts into a sequence of rail placements that can be executed by the mod.
+Syntrax is designed to be integrated into the Factorio Access mod. It provides a compiler that transforms text
+descriptions of rail layouts into a sequence of rail placements that can be executed by the mod.
 
 ### Language Example
 

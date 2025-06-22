@@ -6,12 +6,12 @@ local mod = {}
 
 function mod.TestExecuteSimple()
    local rails = helpers.assert_compilation_succeeds("l r s")
-   helpers.assert_rail_sequence(rails, {"left", "right", "straight"})
+   helpers.assert_rail_sequence(rails, { "left", "right", "straight" })
 end
 
 function mod.TestExecuteWithRepetition()
    local rails = helpers.assert_compilation_succeeds("[l] rep 4")
-   helpers.assert_rail_sequence(rails, {"left", "left", "left", "left"})
+   helpers.assert_rail_sequence(rails, { "left", "left", "left", "left" })
 end
 
 function mod.TestExecuteEmpty()
@@ -35,12 +35,12 @@ end
 function mod.TestRailStructure()
    local rails = helpers.assert_compilation_succeeds("l r")
    lu.assertEquals(#rails, 2)
-   
+
    -- First rail has no parent
    helpers.assert_rail_connects_to(rails, 1, nil)
    lu.assertNotNil(rails[1].incoming_direction)
    lu.assertNotNil(rails[1].outgoing_direction)
-   
+
    -- Second rail's parent is the first
    helpers.assert_rail_connects_to(rails, 2, 1)
    lu.assertEquals(rails[2].incoming_direction, rails[1].outgoing_direction)

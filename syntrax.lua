@@ -23,25 +23,21 @@ mod.VERSION = "0.1.0-dev"
 function mod.execute(source, initial_rail, initial_hand_direction)
    -- Parse
    local ast, parse_err = Parser.parse(source)
-   if parse_err then
-      return nil, parse_err
-   end
-   
+   if parse_err then return nil, parse_err end
+
    -- Parser should always return an AST on success
    assert(ast, "Parser returned nil without error")
-   
+
    -- Compile
    local bytecode = Compiler.compile(ast)
-   
+
    -- Execute
    local vm = Vm.new()
    vm.bytecode = bytecode
    local rails, runtime_err = vm:run(initial_rail, initial_hand_direction)
-   
-   if runtime_err then
-      return nil, runtime_err
-   end
-   
+
+   if runtime_err then return nil, runtime_err end
+
    return rails, nil
 end
 

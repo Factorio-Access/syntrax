@@ -166,12 +166,8 @@ function VM:resolve_operand(operand)
       return operand
    elseif operand.kind == mod.OPERAND_KIND.REGISTER then
       local value = self.registers[operand.argument]
-      if not value then
-         error(string.format("Register r%d not initialized", operand.argument))
-      end
-      if value.kind == mod.OPERAND_KIND.REGISTER then
-         error("Register contains another register reference")
-      end
+      if not value then error(string.format("Register r%d not initialized", operand.argument)) end
+      if value.kind == mod.OPERAND_KIND.REGISTER then error("Register contains another register reference") end
       return value
    elseif operand.kind == mod.OPERAND_KIND.MATH_OP or operand.kind == mod.OPERAND_KIND.CMP_OP then
       -- Operations are not resolved, they're used directly
@@ -191,7 +187,7 @@ function VM:place_rail(kind)
       outgoing = Directions.rotate(incoming, -1)
    elseif kind == mod.RAIL_KIND.RIGHT then
       outgoing = Directions.rotate(incoming, 1)
-   -- STRAIGHT doesn't change direction
+      -- STRAIGHT doesn't change direction
    end
 
    local rail = {
@@ -221,17 +217,13 @@ end
 ---@param instr syntrax.vm.Bytecode
 function VM:execute_math(instr)
    local dest = instr.arguments[1]
-   if dest.kind ~= mod.OPERAND_KIND.REGISTER then
-      error("MATH destination must be a register")
-   end
+   if dest.kind ~= mod.OPERAND_KIND.REGISTER then error("MATH destination must be a register") end
 
    local left = self:resolve_operand(instr.arguments[2])
    local right = self:resolve_operand(instr.arguments[3])
    local op = instr.arguments[4]
-   
-   if op.kind ~= mod.OPERAND_KIND.MATH_OP then
-      error("MATH operation must be a MATH_OP operand")
-   end
+
+   if op.kind ~= mod.OPERAND_KIND.MATH_OP then error("MATH operation must be a MATH_OP operand") end
 
    local result
    if op.argument == mod.MATH_OP.ADD then
@@ -253,17 +245,13 @@ end
 ---@param instr syntrax.vm.Bytecode
 function VM:execute_cmp(instr)
    local dest = instr.arguments[1]
-   if dest.kind ~= mod.OPERAND_KIND.REGISTER then
-      error("CMP destination must be a register")
-   end
+   if dest.kind ~= mod.OPERAND_KIND.REGISTER then error("CMP destination must be a register") end
 
    local val1 = self:resolve_operand(instr.arguments[2])
    local val2 = self:resolve_operand(instr.arguments[3])
    local op = instr.arguments[4]
-   
-   if op.kind ~= mod.OPERAND_KIND.CMP_OP then
-      error("CMP operation must be a CMP_OP operand")
-   end
+
+   if op.kind ~= mod.OPERAND_KIND.CMP_OP then error("CMP operation must be a CMP_OP operand") end
 
    local result
    if op.argument == mod.CMP_OP.LT then
@@ -289,9 +277,7 @@ end
 ---@param instr syntrax.vm.Bytecode
 function VM:execute_mov(instr)
    local dest = instr.arguments[1]
-   if dest.kind ~= mod.OPERAND_KIND.REGISTER then
-      error("MOV destination must be a register")
-   end
+   if dest.kind ~= mod.OPERAND_KIND.REGISTER then error("MOV destination must be a register") end
 
    local value = self:resolve_operand(instr.arguments[2])
    self.registers[dest.argument] = value
@@ -315,13 +301,10 @@ end
 function VM:execute_rpop(instr)
    if #self.rail_stack == 0 then
       -- Runtime error - empty stack
-      return nil, Errors.error_builder(
-         Errors.ERROR_CODE.RUNTIME_ERROR,
-         "Cannot rpop from empty rail stack",
-         instr.span
-      ):build()
+      return nil,
+         Errors.error_builder(Errors.ERROR_CODE.RUNTIME_ERROR, "Cannot rpop from empty rail stack", instr.span):build()
    end
-   
+
    -- Pop the last entry
    local entry = table.remove(self.rail_stack)
    self.parent_rail = entry.rail_index
@@ -397,18 +380,14 @@ function VM:run(initial_rail, initial_hand_direction)
       self.initial_hand_direction = initial_hand_direction
       self.hand_direction = initial_hand_direction
    end
-   
+
    -- Execute instructions until done or error
    while true do
       local continue, err = self:execute_instruction()
-      if err then
-         return nil, err
-      end
-      if not continue then
-         break
-      end
+      if err then return nil, err end
+      if not continue then break end
    end
-   
+
    return self.rails, nil
 end
 
@@ -429,15 +408,13 @@ end
 
 function mod.format_bytecode(bc, index, labels)
    local parts = {}
-   
+
    -- Add label if present
-   if labels and labels[index] then
-      table.insert(parts, labels[index] .. ":")
-   end
-   
+   if labels and labels[index] then table.insert(parts, labels[index] .. ":") end
+
    -- Add bytecode kind
    table.insert(parts, string.upper(bc.kind))
-   
+
    -- Add arguments
    for i, arg in ipairs(bc.arguments) do
       -- Special handling for jump targets
@@ -453,7 +430,7 @@ function mod.format_bytecode(bc, index, labels)
          table.insert(parts, mod.format_operand(arg))
       end
    end
-   
+
    return table.concat(parts, " ")
 end
 

@@ -15,8 +15,6 @@ isn't a single token has its inner contents partsed, and then moving outward.
 
 The next phase in the pipeline figures out if the stuff here is meaningful.
 ]]
-local lu = require("luaunit")
-local serpent = require("serpent")
 
 local Errors = require("syntrax.errors")
 local Span = require("syntrax.span")

@@ -17,7 +17,6 @@ to be fancier than that here.
 IMPORTANT: spans which have out of range indices will crash when computing lines and columns.  The lexer should always
 produce valid spans, and save perhaps for very, very special cases, all spans after that should be merges.
 ]]
-local lu = require("luaunit")
 
 local mod = {}
 ---@class syntrax.Span
@@ -93,27 +92,6 @@ function Span:get_printable_range()
    end
    assert(hr) -- _resolve always sets human_range
    return hr[1], hr[2], hr[3], hr[4]
-end
-
-function mod.TestResolveSimple()
-   local text = [[a
-bcd
-ef]]
-   lu.assertEquals(table.pack(Span.new(text, 1, 1):get_printable_range()), { 1, 1, 1, 1, n = 4 })
-end
-
-function mod.TestResolveSimpleL2()
-   local text = [[a
-bcd
-ef]]
-   lu.assertEquals(table.pack(Span.new(text, 3, 5):get_printable_range()), { 2, 1, 2, 3, n = 4 })
-end
-
-function mod.TestResolveSimpleL3()
-   local text = [[a
-bcd
-ef]]
-   lu.assertEquals(table.pack(Span.new(text, 7, 8):get_printable_range()), { 3, 1, 3, 2, n = 4 })
 end
 
 return mod

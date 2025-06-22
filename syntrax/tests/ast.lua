@@ -1,5 +1,4 @@
 local lu = require("luaunit")
-local serpent = require("serpent")
 
 local Ast = require("syntrax.ast")
 local Span = require("syntrax.span")

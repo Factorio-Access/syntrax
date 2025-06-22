@@ -23,22 +23,22 @@ local vm = Vm.new()
 vm.bytecode = {
    -- r1 = 4 (number of sides)
    bc(Vm.BYTECODE_KIND.MOV, reg(1), val(4)),
-   
+
    -- loop: draw one side
    bc(Vm.BYTECODE_KIND.STRAIGHT),
    bc(Vm.BYTECODE_KIND.STRAIGHT),
    bc(Vm.BYTECODE_KIND.STRAIGHT),
    bc(Vm.BYTECODE_KIND.STRAIGHT),
-   
+
    -- Turn right (90 degrees = 4 units)
    bc(Vm.BYTECODE_KIND.RIGHT),
    bc(Vm.BYTECODE_KIND.RIGHT),
    bc(Vm.BYTECODE_KIND.RIGHT),
    bc(Vm.BYTECODE_KIND.RIGHT),
-   
+
    -- r1 = r1 - 1
    bc(Vm.BYTECODE_KIND.MATH, reg(1), reg(1), val(1), Vm.math_op(Vm.MATH_OP.SUB)),
-   
+
    -- If r1 != 0, jump back to start of loop (offset -9)
    bc(Vm.BYTECODE_KIND.JNZ, reg(1), val(-9)),
 }
@@ -69,14 +69,16 @@ assert(rails)
 print(string.format("\nGenerated %d rails:", #rails))
 for i, rail in ipairs(rails) do
    local parent_str = rail.parent and string.format("from rail %d", rail.parent) or "initial"
-   print(string.format(
-      "  Rail %d: %s (%s, direction %s->%s)",
-      i,
-      rail.kind,
-      parent_str,
-      Vm.format_direction(rail.incoming_direction),
-      Vm.format_direction(rail.outgoing_direction)
-   ))
+   print(
+      string.format(
+         "  Rail %d: %s (%s, direction %s->%s)",
+         i,
+         rail.kind,
+         parent_str,
+         Vm.format_direction(rail.incoming_direction),
+         Vm.format_direction(rail.outgoing_direction)
+      )
+   )
 end
 
 print(string.format("\nFinal hand direction: %s", Vm.format_direction(vm.hand_direction)))

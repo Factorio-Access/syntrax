@@ -1,7 +1,7 @@
 local lu = require("luaunit")
 
 local tests = {
-   { "span", require("syntrax.span") },
+   { "span", require("syntrax.tests.span") },
    { "lexer", require("syntrax.tests.lexer") },
    { "ast", require("syntrax.tests.ast") },
    { "parser", require("syntrax.tests.parser") },

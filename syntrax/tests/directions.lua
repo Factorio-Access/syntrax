@@ -34,7 +34,7 @@ function mod.TestToName()
    lu.assertEquals(Directions.to_name(Directions.SOUTHEAST), "SE")
    lu.assertEquals(Directions.to_name(Directions.SOUTHWEST), "SW")
    lu.assertEquals(Directions.to_name(Directions.NORTHWEST), "NW")
-   
+
    -- Test invalid directions
    lu.assertEquals(Directions.to_name(16), "16")
    lu.assertEquals(Directions.to_name(-1), "-1")
@@ -48,18 +48,18 @@ function mod.TestRotate()
    lu.assertEquals(Directions.rotate(Directions.NORTH, 8), Directions.SOUTH)
    lu.assertEquals(Directions.rotate(Directions.NORTH, 12), Directions.WEST)
    lu.assertEquals(Directions.rotate(Directions.NORTH, 16), Directions.NORTH) -- Full circle
-   
+
    -- Test counterclockwise rotation
    lu.assertEquals(Directions.rotate(Directions.NORTH, -1), Directions.NORTH_NORTHWEST)
    lu.assertEquals(Directions.rotate(Directions.NORTH, -4), Directions.WEST)
    lu.assertEquals(Directions.rotate(Directions.NORTH, -8), Directions.SOUTH)
    lu.assertEquals(Directions.rotate(Directions.NORTH, -12), Directions.EAST)
    lu.assertEquals(Directions.rotate(Directions.NORTH, -16), Directions.NORTH) -- Full circle
-   
+
    -- Test wrapping
    lu.assertEquals(Directions.rotate(Directions.NORTH_NORTHWEST, 1), Directions.NORTH)
    lu.assertEquals(Directions.rotate(Directions.NORTH, -1), Directions.NORTH_NORTHWEST)
-   
+
    -- Test large rotations
    lu.assertEquals(Directions.rotate(Directions.NORTH, 17), Directions.NORTH_NORTHEAST)
    lu.assertEquals(Directions.rotate(Directions.NORTH, 32), Directions.NORTH) -- Two full circles
@@ -71,12 +71,12 @@ function mod.TestOpposite()
    lu.assertEquals(Directions.opposite(Directions.EAST), Directions.WEST)
    lu.assertEquals(Directions.opposite(Directions.SOUTH), Directions.NORTH)
    lu.assertEquals(Directions.opposite(Directions.WEST), Directions.EAST)
-   
+
    lu.assertEquals(Directions.opposite(Directions.NORTHEAST), Directions.SOUTHWEST)
    lu.assertEquals(Directions.opposite(Directions.SOUTHEAST), Directions.NORTHWEST)
    lu.assertEquals(Directions.opposite(Directions.SOUTHWEST), Directions.NORTHEAST)
    lu.assertEquals(Directions.opposite(Directions.NORTHWEST), Directions.SOUTHEAST)
-   
+
    -- Test that opposite of opposite is the original
    for i = 0, 15 do
       lu.assertEquals(Directions.opposite(Directions.opposite(i)), i)

@@ -1,5 +1,4 @@
 local lu = require("luaunit")
-local serpent = require("serpent")
 
 local Lexer = require("syntrax.lexer")
 local TestHelpers = require("syntrax.tests.helpers")

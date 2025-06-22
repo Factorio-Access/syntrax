@@ -19,7 +19,7 @@ mod.NODE_TYPE = {
 
    -- Sequence of commands - implicit grouping, also used at top level
    SEQUENCE = "sequence",
-   
+
    -- Rail stack manipulation
    RPUSH = "rpush",
    RPOP = "rpop",

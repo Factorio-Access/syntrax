@@ -25,7 +25,7 @@ local ast, err = Parser.parse(input)
 if err then
    io.stderr:write("Parse error: " .. err.message .. "\n")
    if err.span then
-      local l1, c1, l2, c2 = err.span:get_printable_range()
+      local l1, c1 = err.span:get_printable_range()
       io.stderr:write(string.format("  at line %d, column %d\n", l1, c1))
    end
    os.exit(1)
@@ -38,7 +38,7 @@ end
 
 local function print_ast(node, level)
    level = level or 0
-   
+
    if node.type == Ast.NODE_TYPE.SEQUENCE then
       print(indent(level) .. "sequence:")
       if #node.statements == 0 then
